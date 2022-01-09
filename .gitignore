@@ -1,1 +1,11 @@
+# VirtualENV files
 virtualenv
+
+# Sample Database
+db.sqlite3
+
+#Extra files
+base/migrations 
+base/__pycache__
+__pycache__
+media
