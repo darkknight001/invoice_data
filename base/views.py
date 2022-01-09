@@ -1,5 +1,4 @@
 from functools import partial
-import re
 from django.http import response
 from django.shortcuts import render
 
@@ -13,6 +12,7 @@ from .serializer import InvoiceSerializer
 from base import serializer
 # Create your views here.
 
+# Internal API, for debug purpose
 @api_view(['GET'])
 def getRoutes(request):
     routes = [
@@ -22,12 +22,12 @@ def getRoutes(request):
            'description': 'Client-side API, takes pdf file as request data, and returns the status',
         },
         {
-           'endpoint': '/api/get_invoice_status',  
+           'endpoint': '/api/get_invoice_status/<invoice_number>',  
            'methods': ['GET'],
            'description': 'Client-side API, takes invoice_number as request data, and returns the status of digitization',
         },
         {
-           'endpoint': '/api/process_invoice',  
+           'endpoint': '/api/update_invoice/<invoice_number>',  
            'methods': ['PUT'],
            'description': 'Internal API, to be used manualy or by other microservices to update the invoice data to database',
         },
@@ -35,31 +35,33 @@ def getRoutes(request):
     ]
     return Response(routes)
 
+# Customer-end API
 @api_view(['POST'])
 def loadInvoice(request):
     parser_classes = [FileUploadParser]
 
     # Get invoice Number from pdf name
     data = request.data
-
     invoiceNumber = str(data.get('file')).split('.', 1)[0]
     data.setdefault('invoiceNumber', invoiceNumber)
+    
     serializer = InvoiceSerializer(data=data)
     response = {}
     http_status = ''
+    
+    # Check if file type is valid
     if serializer.is_valid():
         serializer.save()
         response['details'] = "File uploaded successfully"
-        # response['data'] = serializer.data
         http_status=status.HTTP_201_CREATED
     else:
         response['details'] = "File upload failed."
-        response['data'] = serializer.errors
+        response['errors'] = serializer.errors
         http_status=status.HTTP_400_BAD_REQUEST
         
     return Response(response, status=http_status)
 
-
+# Customer-end API; To get the status of the invoice, returns 400 if invoice is not available in DB
 @api_view(['GET'])
 def getInvoiceStatus(request, invoiceNumber):
     response = {}
@@ -87,12 +89,12 @@ def getInvoiceStatus(request, invoiceNumber):
     
     except Invoice.DoesNotExist:
         response['status'] = "failed"
-        status_code = status.HTTP_404_NOT_FOUND
+        status_code = status.HTTP_400_BAD_REQUEST
         response['details'] = "Given invoice not found in database."
     return Response(response, status=status_code)
 
 
-# Internal API
+# Internal API - For data update purpose, to be used by internal user/Microservices
 @api_view(['PUT'])
 def updateInvoice(request, invoiceNumber):
 
@@ -102,6 +104,7 @@ def updateInvoice(request, invoiceNumber):
     try:
         invoiceObject = Invoice.objects.get(invoiceNumber=invoiceNumber)
         
+        # In case we don't want to go for validation of data
         # data = request.data
 
         # invoiceObject.vendor = data['vendor']

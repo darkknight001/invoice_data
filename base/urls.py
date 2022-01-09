@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+# URL patterns for API endpoints(prefixed by /api/)
+
 urlpatterns = [
     path('', views.getRoutes, name='routes'),
     path('load_invoice/', views.loadInvoice , name='load-invoice'),

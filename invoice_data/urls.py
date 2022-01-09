@@ -20,7 +20,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('base.urls'))
+    path('api/', include('base.urls')) #Handled by base App
 ]
 
+# Media URLs, to download uploaded pdfs
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

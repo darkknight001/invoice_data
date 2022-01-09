@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import FileExtensionValidator
 
 # Create your models here.
+
+# Basic model for storing invoice related information
 class Invoice(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
     
