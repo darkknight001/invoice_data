@@ -52,10 +52,16 @@ def loadInvoice(request):
     # Check if file type is valid
     if serializer.is_valid():
         serializer.save()
-        response['details'] = "File uploaded successfully"
+        response['status'] = "File uploaded successfully"
+        response['details'] = {
+                'invoiceNumber': serializer.data.get('invoiceNumber'),
+                'file': serializer.data.get('file'),
+                'isDigitized': serializer.data.get('isDigitized'),
+                'created_timestamp': serializer.data.get('created_timestamp'),
+        }
         http_status=status.HTTP_201_CREATED
     else:
-        response['details'] = "File upload failed."
+        response['status'] = "File upload failed."
         response['errors'] = serializer.errors
         http_status=status.HTTP_400_BAD_REQUEST
         
